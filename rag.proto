@@ -1,0 +1,147 @@
+syntax = "proto3";
+import "google/api/annotations.proto";
+
+import "protobuf_pydantic_gen/pydantic.proto";
+import "chat.proto";
+package raghub_interfaces;
+
+// Property	Required	Type	Description	Example value
+// knowledge_id	TRUE	string	Your knowledge’s unique ID	AAA-BBB-CCC
+// query	TRUE	string	User’s query	What is Dify?
+// retrieval_setting	TRUE	object	Knowledge’s retrieval parameters	See below
+// metadata_condition	FALSE	Object	Original array filtering	See below
+// The retrieval_setting property is an object containing the following keys:
+
+// Property	Required	Type	Description	Example value
+// top_k	TRUE	int	Maximum number of retrieved results	5
+// score_threshold	TRUE	float	The score limit of relevance of the result to the query, scope: 0~1	0.5
+// The metadata_condition property is an object containing the following keys:
+
+// Attribute	Required	Type	Description	Example Value
+// logical_operator	No	String	Logical operator, values can be and or or, default is and	and
+// conditions	Yes	Array (Object)	List of conditions	See below
+// Each object in the conditions array contains the following keys:
+
+// Attribute	Required	Type	Description	Example Value
+// name	Yes	Array (String)	Names of the metadata to filter	["category", "tag"]
+// comparison_operator	Yes	String	Comparison operator	contains
+// value	No	String	Comparison value, can be omitted when the operator is empty, not empty, null, or not null
+message MetadataConditionItem {
+    repeated string name = 1[json_name="name",(pydantic.field) = {description: "Names of the metadata to filter",required:true}];
+    string comparison_operator = 2[json_name="comparison_operator",(pydantic.field) = {description: "Comparison operator",required:true}];
+    string value = 3[json_name="value",(pydantic.field) = {description: "Comparison value, can be omitted when the operator is empty, not empty, null, or not null"}];
+}
+message MetadataCondition {
+    string logical_operator = 1[json_name="logical_operator",(pydantic.field) = {description: "Logical operator, values can be and or or, default is and",default:"and"}];
+    repeated MetadataConditionItem conditions = 2[json_name="conditions",(pydantic.field) = {description: "List of conditions",required:true}];
+}
+message RetrievalRequest{
+    string knowledge_id = 1[json_name="knowledge_id",(pydantic.field) = {description: "knowledge’s unique ID",required:true}];
+    string query = 2[json_name="query",(pydantic.field) = {description: "User’s query",required:true}];
+    RetrievalSetting retrieval_setting = 3[json_name="retrieval_setting",(pydantic.field) = {description: "Knowledge’s retrieval parameters",default:"RetrievalSetting()",required:true}];
+    MetadataCondition metadata_condition = 4[json_name="metadata_condition",(pydantic.field) = {description: "Original array filtering",required:false}];
+
+}
+
+
+// Response Elements
+// If the action is successful, the service sends back an HTTP 200 response.
+
+// The following data is returned in JSON format by the service.
+
+// Property	Required	Type	Description	Example value
+// records	TRUE	List[Object]	A list of records from querying the knowledge base.	See below
+// The records property is a list object containing the following keys:
+
+// Property	Required	Type	Description	Example value
+// content	TRUE	string	Contains a chunk of text from a data source in the knowledge base.	Dify:The Innovation Engine for GenAI Applications
+// score	TRUE	float	The score of relevance of the result to the query, scope: 0~1	0.5
+// title	TRUE	string	Document title	Dify Introduction
+// metadata	FALSE	json	Contains metadata attributes and their values for the document in the data source.	
+
+// Errors
+// If the action fails, the service sends back the following error information in JSON format:
+
+// Property	Required	Type	Description	Example value
+// error_code	TRUE	int	Error code	1001
+// error_msg	TRUE	string	The description of API exception	Invalid Authorization header format. Expected ‘Bearer <api-key>’ format.
+
+message RetrievalResponseRecord {
+    string content = 1[json_name="content",(pydantic.field) = {description: "Contains a chunk of text from a data source in the knowledge base.",required:true}];
+    double score = 2[json_name="score",(pydantic.field) = {description: "The score of relevance of the result to the query, scope: 0~1",required:true}];
+    string title = 3[json_name="title",(pydantic.field) = {description: "Document title",required:true}];
+    map<string, string> metadata = 4[json_name="metadata",(pydantic.field) = {description: "Contains metadata attributes and their values for the document in the data source.",required:false}];
+}
+message RetrievalResponseError {
+    int32 error_code = 1[json_name="error_code",(pydantic.field) = {description: "Error code",default:"1001",required:true}];
+    string error_msg = 2[json_name="error_msg",(pydantic.field) = {description: "The description of API exception",default:"",required:true}];
+}
+message RetrievalResponse {
+    repeated RetrievalResponseRecord records = 1[json_name="records",(pydantic.field) = {description: "A list of records from querying the knowledge base.",required:true}];
+    RetrievalResponseError error = 2[json_name="error",(pydantic.field) = {description: "Error information",required:false}];
+    string request_id = 3[json_name="request_id",(pydantic.field) = {description: "Request ID for tracking",required:false}];
+}
+
+message CreateIndexRequest {
+    string unique_name = 1[json_name="unique_name",(pydantic.field) = {description: "Name of the index",required:true}];
+}
+message CreateIndexResponse {
+    string unique_name = 1[json_name="unique_name",(pydantic.field) = {description: "Name of the index",required:true}];
+}
+
+message ChatRequest {
+    string knowledge_id = 1[json_name="knowledge_id",(pydantic.field) = {description: "knowledge’s unique ID",required:true}];
+    string question = 2[json_name="question",(pydantic.field) = {description: "User’s question",required:true}];
+    RetrievalSetting retrieval_setting = 3[json_name="retrieval_setting",(pydantic.field) = {description: "Knowledge’s retrieval parameters",default:"RetrievalSetting()",required:true}];
+    MetadataCondition metadata_condition = 4[json_name="metadata_condition",(pydantic.field) = {description: "Original array filtering",required:false}];
+}
+message ChatResponse {
+    string answer = 1[json_name="answer",(pydantic.field) = {description: "The answer to the question based on the retrieved knowledge",required:true}];
+    repeated RetrievalResponseRecord records = 2[json_name="records",(pydantic.field) = {description: "A list of records used to generate the answer",required:true}];
+    RetrievalResponseError error = 3[json_name="error",(pydantic.field) = {description: "Error information",required:false}];
+}
+message RAGDocument {
+    string content = 2[json_name="content",(pydantic.field) = {description: "Content of the document",required:true}];
+    string title = 3[json_name="title",(pydantic.field) = {description: "Title of the document",required:true}];
+    map<string, string> metadata = 4[json_name="metadata",(pydantic.field) = {description: "Metadata attributes and their values for the document",required:false}];
+    string type = 5[json_name="type",(pydantic.field) = {description: "Type of the document, e.g., 'text', 'image'", default: "text", required: false}];
+    string source = 6[json_name="source",(pydantic.field) = {description: "Source of the document, e.g., 'knowledge_base', 'external'", default: "knowledge_base", required: false}];
+}
+message AddDocumentsRequest {
+    string knowledge_id = 1[json_name="knowledge_id",(pydantic.field) = {description: "knowledge’s unique ID",required:true}];
+    repeated RAGDocument documents = 2[json_name="documents",(pydantic.field) = {description: "List of documents to be added",required:true}];
+}
+message AddDocumentsResponse {
+    repeated RAGDocument documents = 1[json_name="documents",(pydantic.field) = {description: "List of documents that were added",required:true}];
+    RetrievalResponseError error = 2[json_name="error",(pydantic.field) = {description: "Error information",required:false}];
+    string request_id = 3[json_name="request_id",(pydantic.field) = {description: "Request ID for tracking",required:false}];
+}
+service RAGService {
+    rpc Retrieval(RetrievalRequest) returns (RetrievalResponse) {
+        option (google.api.http) = {
+            post: "/v1/rag/retrieval"
+            body: "*"
+        };
+    }
+    rpc CreateIndex(CreateIndexRequest) returns (CreateIndexResponse) {
+        option (google.api.http) = {
+            post: "/v1/rag/index"
+            body: "*"
+        };
+    }
+    rpc Chat(CreateChatCompletionRequest) returns (stream CreateChatCompletionResponse) {
+        option (google.api.http) = {
+            post: "/v1/rag/chat/completions"
+            body: "*"
+        };
+    }
+    rpc AddDocuments(AddDocumentsRequest) returns (AddDocumentsResponse) {
+        option (google.api.http) = {
+            post: "/v1/rag/documents/add"
+            body: "*"
+        };
+    }
+
+
+}
+

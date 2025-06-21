@@ -1,0 +1,7 @@
+syntax = "proto3";
+import "google/api/annotations.proto";
+
+import "protobuf_pydantic_gen/pydantic.proto";
+
+message RequestContextHeaders {
+}

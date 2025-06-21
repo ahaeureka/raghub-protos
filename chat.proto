@@ -1,0 +1,59 @@
+syntax = "proto3";
+import "google/protobuf/any.proto";
+import "protobuf_pydantic_gen/pydantic.proto";
+package raghub_interfaces;
+
+// Create chat completion
+
+message ChatMessage {
+    string role = 1[json_name="role", (pydantic.field) = {description: "Role of the message, e.g., 'user', 'assistant', 'system'", required: true}];
+    string content = 2[json_name="content", (pydantic.field) = {description: "Content of the message", required: true}];
+    string name = 3[json_name="name", (pydantic.field) = {description: "Name of the message sender, if applicable",default:"", required: false}];
+
+}
+message RetrievalSetting {
+    int32 top_k = 1[json_name="top_k",(pydantic.field) = {description: "Maximum number of retrieved results",default:"5",required:true}];
+    double score_threshold = 2[json_name="score_threshold",(pydantic.field) = {description: "The score limit of relevance of the result to the query, scope: 0~1",default:"0.7",required:true}];
+}
+message CreateChatCompletionRequest {
+    string model = 1[json_name="model", (pydantic.field) = {description: "The model to use for chat completion", required: true}];
+    repeated ChatMessage messages = 2[json_name="messages", (pydantic.field) = {description: "List of messages in the chat conversation", required: true}];
+    int32 max_tokens = 3[json_name="max_tokens", (pydantic.field) = {description: "Maximum number of tokens to generate in the response", default: "1000", required: false}];
+    double temperature = 4[json_name="temperature", (pydantic.field) = {description: "Sampling temperature for response generation", default: "0.7", required: false}];
+    map<string,google.protobuf.Any> metadata = 5[json_name="metadata", (pydantic.field) = {description: "Additional options for the chat completion request", required: false}];
+    string user = 6[json_name="user", (pydantic.field) = {description: "Identifier for the user making the request", default: "", required: false}];
+    bool stream = 7[json_name="stream", (pydantic.field) = {description: "Whether to stream the response back", default: "False", required: false}];
+    string response_format = 8[json_name="response_format", (pydantic.field) = {description: "Format of the response, e.g., 'json', 'text'", default: "json", required: false}];
+    string knowledge_id = 9[json_name="knowledge_id", (pydantic.field) = {description: "Knowledge base ID to use for the chat completion", default: "", required: false}];
+    RetrievalSetting retrieval_setting = 10[json_name="retrieval_setting", (pydantic.field) = {description: "Knowledge base retrieval settings", default: "RetrievalSetting()", required: false}];
+}
+
+// https://platform.openai.com/docs/api-reference/chat/object
+message ChatCompletionChoice {
+    string index = 1[json_name="index", (pydantic.field) = {description: "Index of the choice in the response", required: true}];
+    ChatMessage message = 2[json_name="message", (pydantic.field) = {description: "The message generated as part of the choice", required: true}];
+    double finish_reason = 3[json_name="finish_reason", (pydantic.field) = {description: "Reason for finishing the generation, e.g., 'stop', 'length'", default: "", required: false}];
+}
+message ChatCompletionUsage {
+    int64 prompt_tokens = 1[json_name="prompt_tokens", (pydantic.field) = {description: "Number of tokens in the prompt", required: true}];
+    int64 completion_tokens = 2[json_name="completion_tokens", (pydantic.field) = {description: "Number of tokens in the completion", required: true}];
+    int64 total_tokens = 3[json_name="total_tokens", (pydantic.field) = {description: "Total number of tokens used in the request", required: true}];
+}
+message ChatCompletionReference{
+    string knowledge_id = 1[json_name="knowledge_id", (pydantic.field) = {description: "Knowledge base ID used for the chat completion", required: true}];
+    string chunk_id = 2[json_name="chunk_id", (pydantic.field) = {description: "ID of the chunk used in the chat completion", required: true}];
+    string content = 3[json_name="content", (pydantic.field) = {description: "Content of the chunk used in the chat completion", required: true}];
+    string type = 4[json_name="type", (pydantic.field) = {description: "Type of the reference, e.g., 'text', 'image'", default: "text", required: false}];
+    map<string,google.protobuf.Any> metadata = 5[json_name="metadata", (pydantic.field) = {description: "Additional metadata about the reference", required: false}];
+    string source = 6[json_name="source", (pydantic.field) = {description: "Source of the reference, e.g., 'knowledge_base', 'external'", default: "knowledge_base", required: false}];
+}
+message CreateChatCompletionResponse {
+    string id = 1[json_name="id", (pydantic.field) = {description: "Unique identifier for the chat completion request", required: true}];
+    string object = 2[json_name="object", (pydantic.field) = {description: "Type of object returned, e.g., 'chat.completion'", required: true}];
+    int64 created = 3[json_name="created", (pydantic.field) = {description: "Timestamp of when the chat completion was created", required: true}];
+    string model = 4[json_name="model", (pydantic.field) = {description: "Model used for generating the chat completion", required: true}];
+    repeated ChatCompletionChoice choices = 5[json_name="choices", (pydantic.field) = {description: "List of choices generated in the chat completion", required: true}];
+    map<string,google.protobuf.Any> metadata = 6[json_name="metadata", (pydantic.field) = {description: "Additional metadata about the chat completion response", required: false}];
+    ChatCompletionUsage usage = 7[json_name="usage", (pydantic.field) = {description: "Usage statistics for the chat completion request", required: true}];
+    repeated ChatCompletionReference references = 8[json_name="references", (pydantic.field) = {description: "References to knowledge base chunks used in the chat completion", required: false}];
+}
