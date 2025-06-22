@@ -1,6 +1,6 @@
 syntax = "proto3";
 import "google/api/annotations.proto";
-
+import "google/protobuf/any.proto";
 import "protobuf_pydantic_gen/pydantic.proto";
 import "chat.proto";
 package raghub_interfaces;
@@ -39,7 +39,7 @@ message RetrievalRequest{
     string knowledge_id = 1[json_name="knowledge_id",(pydantic.field) = {description: "knowledge’s unique ID",required:true}];
     string query = 2[json_name="query",(pydantic.field) = {description: "User’s query",required:true}];
     RetrievalSetting retrieval_setting = 3[json_name="retrieval_setting",(pydantic.field) = {description: "Knowledge’s retrieval parameters",default:"RetrievalSetting()",required:true}];
-    MetadataCondition metadata_condition = 4[json_name="metadata_condition",(pydantic.field) = {description: "Original array filtering",required:false}];
+    MetadataCondition metadata_condition = 4[json_name="metadata_condition",(pydantic.field) = {description: "Original array filtering",required:false,default:"None"}];
 
 }
 
@@ -103,7 +103,7 @@ message ChatResponse {
 message RAGDocument {
     string content = 2[json_name="content",(pydantic.field) = {description: "Content of the document",required:true}];
     string title = 3[json_name="title",(pydantic.field) = {description: "Title of the document",required:true}];
-    map<string, string> metadata = 4[json_name="metadata",(pydantic.field) = {description: "Metadata attributes and their values for the document",required:false}];
+    map<string, google.protobuf.Any> metadata = 4[json_name="metadata",(pydantic.field) = {description: "Metadata attributes and their values for the document",required:false}];
     string type = 5[json_name="type",(pydantic.field) = {description: "Type of the document, e.g., 'text', 'image'", default: "text", required: false}];
     string source = 6[json_name="source",(pydantic.field) = {description: "Source of the document, e.g., 'knowledge_base', 'external'", default: "knowledge_base", required: false}];
 }
