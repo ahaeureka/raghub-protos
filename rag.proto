@@ -116,6 +116,15 @@ message AddDocumentsResponse {
     RetrievalResponseError error = 2[json_name="error",(pydantic.field) = {description: "Error information",required:false}];
     string request_id = 3[json_name="request_id",(pydantic.field) = {description: "Request ID for tracking",required:false}];
 }
+message DeleteDocumentsRequest {
+    string knowledge_id = 1[json_name="knowledge_id",(pydantic.field) = {description: "knowledge’s unique ID",required:true}];
+    repeated string document_ids = 2[json_name="document_ids",(pydantic.field) = {description: "List of document IDs to be deleted",required:true}];
+}
+message DeleteDocumentsResponse {
+    repeated string deleted_ids = 1[json_name="deleted_ids",(pydantic.field) = {description: "List of document IDs that were successfully deleted",required:true}];
+    RetrievalResponseError error = 2[json_name="error",(pydantic.field) = {description: "Error information",required:false}];
+    string request_id = 3[json_name="request_id",(pydantic.field) = {description: "Request ID for tracking",required:false}];
+}
 service RAGService {
     rpc Retrieval(RetrievalRequest) returns (RetrievalResponse) {
         option (google.api.http) = {
@@ -137,7 +146,13 @@ service RAGService {
     }
     rpc AddDocuments(AddDocumentsRequest) returns (AddDocumentsResponse) {
         option (google.api.http) = {
-            post: "/v1/rag/documents/add"
+            post: "/v1/rag/documents"
+            body: "*"
+        };
+    }
+    rpc DeleteDocuments(DeleteDocumentsRequest) returns (DeleteDocumentsResponse) {
+        option (google.api.http) = {
+            delete: "/v1/rag/documents"
             body: "*"
         };
     }
