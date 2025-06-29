@@ -9,9 +9,11 @@ PY_PYDANTIC_PLUGIN = $(shell which grpc_python_plugin)
 
 # 目标文件夹
 PROTO_DIR = .
-OUTPUT_DIR = ../raghub_interfaces/protos
+OUTPUT_DIR = ../raghub_protos
 PB_OUTPUT_DIR = $(OUTPUT_DIR)/pb
+PY_CLIENT_OUTPUT_DIR= ../../../raghub-client/src/raghub_client/
 MODELS_DIR= $(OUTPUT_DIR)/models
+ABS_MODELS_DIR := $(abspath $(MODELS_DIR))
 COMMON_DIR= $(OUTPUT_DIR)/common
 # 生成的文件
 TS_OUTPUT_DIR="../pb"
@@ -56,7 +58,13 @@ ts: $(TS_PROTO_FILES) | common
 	@mkdir -p $(TS_OUTPUT_DIR)
 	$(PROTOC) --proto_path=$(PROTO_DIR) --proto_path=./common --proto_path=./ $(TS_ARGS) $?
 
-desc:
-	protoc --descriptor_set_out="../pb/totoro.bin" --include_imports -I=./ -I=./common ./common/begonia/api/v1/web.proto $(PY_PROTO_FILES)
+py_cli:
+	@mkdir -p $(PY_CLIENT_OUTPUT_DIR)
+	python3 -m grpc_tools.protoc \
+		--proto_path=$(PROTO_DIR) --proto_path=./common --proto_path=./ \
+		--client_out=$(PY_CLIENT_OUTPUT_DIR) --client_opt=package_name=raghub_protos \
+		--client_opt=models_dir=$(ABS_MODELS_DIR) \
+		--client_opt=class_name=RAGHubClient \
+		$(PY_PROTO_FILES)
 print:
 	@echo $(PY_PROTO_FILES)
