@@ -26,6 +26,24 @@ package raghub_interfaces;
 // name	Yes	Array (String)	Names of the metadata to filter	["category", "tag"]
 // comparison_operator	Yes	String	Comparison operator	contains
 // value	No	String	Comparison value, can be omitted when the operator is empty, not empty, null, or not null
+// Supported comparison_operator operators:
+
+// contains: Contains a certain value
+// not contains: Does not contain a certain value
+// start with: Starts with a certain value
+// end with: Ends with a certain value
+// is: Equals a certain value
+// is not: Does not equal a certain value
+// empty: Is empty
+// not empty: Is not empty
+// =: Equals
+// ≠: Not equal
+// >: Greater than
+// <: Less than
+// ≥: Greater than or equal to
+// ≤: Less than or equal to
+// before: Before a certain date
+// after: After a certain date
 message MetadataConditionItem {
     repeated string name = 1[json_name="name",(pydantic.field) = {description: "Names of the metadata to filter",required:true}];
     string comparison_operator = 2[json_name="comparison_operator",(pydantic.field) = {description: "Comparison operator",required:true}];
@@ -153,7 +171,6 @@ service RAGService {
     rpc DeleteDocuments(DeleteDocumentsRequest) returns (DeleteDocumentsResponse) {
         option (google.api.http) = {
             delete: "/v1/rag/documents"
-            body: "*"
         };
     }
 
