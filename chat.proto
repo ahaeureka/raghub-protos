@@ -13,7 +13,7 @@ message ChatMessage {
 }
 message RetrievalSetting {
     int32 top_k = 1[json_name="top_k",(pydantic.field) = {description: "Maximum number of retrieved results",default:"5",required:true}];
-    double score_threshold = 2[json_name="score_threshold",(pydantic.field) = {description: "The score limit of relevance of the result to the query, scope: 0~1",default:"0.7",required:true}];
+    double score_threshold = 2[json_name="score_threshold",(pydantic.field) = {description: "The score limit of relevance of the result to the query, scope: 0~1",default:"0.2",required:true}];
 }
 message CreateChatCompletionRequest {
     string model = 1[json_name="model", (pydantic.field) = {description: "The model to use for chat completion", required: true}];
