@@ -1,6 +1,7 @@
 syntax = "proto3";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
 import "protobuf_pydantic_gen/pydantic.proto";
 import "chat.proto";
 package raghub_interfaces;
@@ -88,7 +89,7 @@ message RetrievalResponseRecord {
     string content = 1[json_name="content",(pydantic.field) = {description: "Contains a chunk of text from a data source in the knowledge base.",required:true}];
     double score = 2[json_name="score",(pydantic.field) = {description: "The score of relevance of the result to the query, scope: 0~1",required:true}];
     string title = 3[json_name="title",(pydantic.field) = {description: "Document title",required:true}];
-    map<string, string> metadata = 4[json_name="metadata",(pydantic.field) = {description: "Contains metadata attributes and their values for the document in the data source.",required:false}];
+    map<string, google.protobuf.Any> metadata = 4[json_name="metadata",(pydantic.field) = {description: "Contains metadata attributes and their values for the document in the data source.",required:false}];
 }
 message RetrievalResponseError {
     int32 error_code = 1[json_name="error_code",(pydantic.field) = {description: "Error code",default:"1001",required:true}];
@@ -143,6 +144,10 @@ message DeleteDocumentsResponse {
     RetrievalResponseError error = 2[json_name="error",(pydantic.field) = {description: "Error information",required:false}];
     string request_id = 3[json_name="request_id",(pydantic.field) = {description: "Request ID for tracking",required:false}];
 }
+message HealthResponse {
+    bool healthy = 1[json_name="healthy",(pydantic.field) = {description: "Indicates if the service is healthy",required:true}];
+    string message = 2[json_name="message",(pydantic.field) = {description: "Health status message",required:false}];
+}
 service RAGService {
     rpc Retrieval(RetrievalRequest) returns (RetrievalResponse) {
         option (google.api.http) = {
@@ -171,6 +176,11 @@ service RAGService {
     rpc DeleteDocuments(DeleteDocumentsRequest) returns (DeleteDocumentsResponse) {
         option (google.api.http) = {
             delete: "/v1/rag/documents"
+        };
+    }
+    rpc Health(google.protobuf.Empty) returns (HealthResponse) {
+        option (google.api.http) = {
+            get: "/health"
         };
     }
 
